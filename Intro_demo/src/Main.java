@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) throws SQLException {
         Properties properties = new Properties();
         properties.setProperty("user", "root"); //TODO: Don't forget to change the props.
-        properties.setProperty("password", "goshokarakolata79");
+        properties.setProperty("password", "1234");
         connection = DriverManager.getConnection(CONNECTION_STRING + DATABASE_NAME, properties);
 
         System.out.println("Select an exercise by entering a number from 2 to 9, enter 10 to exit.");
@@ -21,46 +21,86 @@ public class Main {
         while (menu != 10) {
             if (menu == 2) {
                 System.out.println(" - - 2. Get Villains’ Names - - ");
-                get_Villains_Names_And_Count_Of_Minions();
+                exercise_Get_Villains_Names_And_Count_Of_Minions();
             } else if (menu == 3) {
                 System.out.println(" - - 3. Get Minion Names - - ");
-                get_A_Given_Villains_Minions();
+                exercise_Get_A_Given_Villains_Minions();
             } else if (menu == 4) {
                 System.out.println(" - - 4. Add Minion - - ");
-                add_Minion_Exercise();
+                exercise_Add_Minion_Exercise();
             } else if (menu == 5) {
                 System.out.println(" - - 5. Change Town Names Casing - - ");
-                change_Towns_To_UPPER_CASE_By_Country();
+                exercise_Change_Towns_To_UPPER_CASE_By_Country();
             } else if (menu == 6) {
-                System.out.println("I haven't done this exercise yet :)");
+                System.out.println("I haven't done the 6th exercise yet :)");
             } else if (menu == 7) {
                 System.out.println(" - - 7. Print All Minion Names - - ");
-                print_All_Minions_Names_In_A_Specific_Order();
+                exercise_Print_All_Minions_Names_In_A_Specific_Order();
+            } else if (menu == 8) {
+                System.out.println(" - - 8. Increase Minions Age - - ");
+                exercise_Update_Minions_By_Given_IDs();
+            } else if (menu == 9) {
+                System.out.println(" - - 9. Increase Age Stored Procedure - - ");
+                exercise_Update_Minion_Age_By_ID();
             } else {
                 System.out.println("Incorrect number. Try again with [2-10]");
             }
+            System.out.println("\nEnter a number [2-10]\n");
             menu = Integer.parseInt(scanner.nextLine());
         }
 
     }
 
-    private static void print_All_Minions_Names_In_A_Specific_Order() throws SQLException {
+    private static void exercise_Update_Minion_Age_By_ID() throws SQLException {
+        int ID = Integer.parseInt(scanner.nextLine());
+        query = "CALL usp_get_older(?)";
+        statement = connection.prepareStatement(query);
+        statement.setInt(1,ID);
+        statement.executeQuery();
+
+        query = "SELECT name, age FROM minions WHERE id = ?";
+        statement = connection.prepareStatement(query);
+        statement.setInt(1,ID);
+        ResultSet rs = statement.executeQuery();
+        while(rs.next()){
+            System.out.printf("The updated Minion: [name - %s, age - %d]%n", rs.getString("name"),rs.getInt("age"));
+        }
+    }
+
+    private static void exercise_Update_Minions_By_Given_IDs() throws SQLException {
+        String[] IDs = scanner.nextLine().split("\\s+");
+        query = "UPDATE minions SET age = age + 1, name = LCASE(name) WHERE id = ?";
+        statement = connection.prepareStatement(query);
+        for (int i = 0; i < IDs.length; i++) {
+            int currentMinionID = Integer.parseInt(IDs[i]);
+            statement.setInt(1, currentMinionID);
+        }
+        statement.executeUpdate();
+        query = "SELECT name, age FROM minions";
+        statement = connection.prepareStatement(query);
+        ResultSet rs = statement.executeQuery();
+        while (rs.next()) {
+            System.out.println(rs.getString("name") + " " + rs.getInt("age"));
+        }
+    }
+
+    private static void exercise_Print_All_Minions_Names_In_A_Specific_Order() throws SQLException {
         query = "SELECT name FROM minions";
         statement = connection.prepareStatement(query);
         ResultSet rs = statement.executeQuery();
 
         Deque<String> names = new LinkedList<String>();
-        while(rs.next()){
+        while (rs.next()) {
             names.offer(rs.getString(1));
         }
 
-        while(!names.isEmpty()){
+        while (!names.isEmpty()) {
             System.out.println(names.pollFirst());
             System.out.println(names.pollLast());
         }
     }
 
-    private static void change_Towns_To_UPPER_CASE_By_Country() throws SQLException {
+    private static void exercise_Change_Towns_To_UPPER_CASE_By_Country() throws SQLException {
         String country = scanner.nextLine();
         query = "UPDATE towns SET name = UCASE(name)\n" +
                 "where country = ?;\n";
@@ -86,7 +126,7 @@ public class Main {
         }
     }
 
-    private static void add_Minion_Exercise() throws SQLException {
+    private static void exercise_Add_Minion_Exercise() throws SQLException {
         System.out.print("Enter minion parameters: ");
         String[] minionParameters = scanner.nextLine().split("\\s+");
         String minionName = minionParameters[0];
@@ -164,7 +204,7 @@ public class Main {
         return rs.next();
     }
 
-    private static void get_A_Given_Villains_Minions() throws SQLException {
+    private static void exercise_Get_A_Given_Villains_Minions() throws SQLException {
         System.out.print("Enter villain id: ");
         int villain_id = Integer.parseInt(scanner.nextLine());
 
@@ -208,7 +248,7 @@ public class Main {
         return rs.next();
     }
 
-    private static void get_Villains_Names_And_Count_Of_Minions() throws SQLException {
+    private static void exercise_Get_Villains_Names_And_Count_Of_Minions() throws SQLException {
         query = "select v.name, count(mv.minion_id) as 'count'\n" +
                 "from villains as v\n" +
                 "join minions_villains as mv on v.id = mv.villain_id\n" +
