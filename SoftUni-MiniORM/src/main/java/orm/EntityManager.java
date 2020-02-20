@@ -5,7 +5,6 @@ import annotations.Column;
 import annotations.Entity;
 import annotations.Id;
 
-import javax.swing.plaf.nimbus.State;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
@@ -37,7 +36,7 @@ public class EntityManager<E> implements DbContext<E> {
     }
 
     public Iterable<E> find(Class<E> table) throws InvocationTargetException, SQLException, InstantiationException, IllegalAccessException, NoSuchMethodException {
-        return find(table,null);
+        return find(table, null);
     }
 
     public Iterable<E> find(Class<E> table, String where) throws SQLException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -57,9 +56,7 @@ public class EntityManager<E> implements DbContext<E> {
     }
 
     public E findFirst(Class<E> table) throws SQLException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-
-
-        return this.findFirst(table,null);
+        return this.findFirst(table, null);
     }
 
     public E findFirst(Class<E> table, String where) throws SQLException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -103,7 +100,7 @@ public class EntityManager<E> implements DbContext<E> {
     }
 
     private boolean doInsert(E entity, Field primary) throws IllegalAccessException, SQLException {
-        if (!checkIfTableExists(entity.getClass())) {
+        if (!this.checkIfTableExists(entity.getClass())) {
             this.doCreate(entity.getClass());
         } else {
             if (!this.checkIfThereIsNewColumn(entity.getClass().getDeclaredFields())) {
@@ -122,11 +119,8 @@ public class EntityManager<E> implements DbContext<E> {
             field.setAccessible(true);
 
             if (!field.isAnnotationPresent(Id.class)) {
-
                 columns += "`" + this.getColumnName(field) + "`";
-
                 Object value = field.get(entity);
-
                 if (value instanceof Date) {
                     values += "'" + new SimpleDateFormat("yyyy-MM-dd").format(value) + "'";
                 } else {
@@ -137,9 +131,7 @@ public class EntityManager<E> implements DbContext<E> {
                     columns += ",";
                 }
             }
-
         }
-
         query += columns + ") VALUES " + values + ")";
         return connection.prepareStatement(query).execute();
     }
@@ -186,15 +178,14 @@ public class EntityManager<E> implements DbContext<E> {
             Field field = fields[i];
             field.setAccessible(true);
 
-            String name = field.getName();
             this.fillField(field, entity, rs, field.getAnnotation(Column.class).name());
         }
     }
 
-    private <E> void doCreate(Class entity) throws SQLException {
-        String tableName = this.getTableName(entity);
-        String query = "CREATE TABLE " + tableName + " ( ";
-        String columns = "";
+    @Override
+    public <E> void doCreate(Class<E> entity) throws SQLException {
+        String query = "CREATE TABLE " + this.getTableName(entity) + " ( ";
+        String columnDefinition = "";
 
         Field[] fields = entity.getDeclaredFields();
 
@@ -202,35 +193,45 @@ public class EntityManager<E> implements DbContext<E> {
             Field field = fields[i];
             field.setAccessible(true);
 
-            columns += this.getColumnName(field) + " " + getDBType(field);
+            columnDefinition += this.getColumnName(field) + " " + getDBType(field);
 
             if (i < fields.length - 1) {
-                columns += ", ";
+                columnDefinition += ", \n";
             }
         }
-        query += columns + ")";
+        query += columnDefinition + ")";
         connection.prepareStatement(query).execute();
     }
 
-    private <E> void doAlter(Class entity) throws SQLException {
-        String tableName = this.getTableName(entity);
-        String query = "ALTER TABLE " + tableName + " ADD ";
-        String toAdd = "";
-
-
+    @Override
+    public <E1> void doAlter(Class<E1> entity) throws SQLException {
+        String query = "ALTER TABLE " + this.getTableName(entity) + " ADD ";
         Field[] fields = entity.getDeclaredFields();
+        List<String> toAdd = new ArrayList<>();
 
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
             field.setAccessible(true);
 
             if (!this.checkIfColumnExists(field)) {
-                toAdd += this.getColumnName(field) + " " + this.getDBType(field);
+                toAdd.add(this.getColumnName(field) + " "
+                        + this.getDBType(field));
             }
         }
 
         query += String.join(",", toAdd);
         connection.prepareStatement(query).execute();
+    }
+
+    private void fillField(Field field, Object instance, ResultSet rs, String fieldName) throws SQLException, IllegalAccessException {
+        field.setAccessible(true);
+        if (field.getType() == int.class || field.getType() == Integer.class) {
+            field.set(instance, rs.getInt(fieldName));
+        } else if (field.getType() == Date.class) {
+            field.set(instance, rs.getDate(fieldName));
+        } else if (field.getType() == String.class) {
+            field.set(instance, rs.getString(fieldName));
+        }
     }
 
     private String getDBType(Field field) {
@@ -245,17 +246,6 @@ public class EntityManager<E> implements DbContext<E> {
             return "VARCHAR (50)";
         }
         return "";
-    }
-
-    private void fillField(Field field, Object instance, ResultSet rs, String fieldName) throws SQLException, IllegalAccessException {
-        field.setAccessible(true);
-        if (field.getType() == int.class || field.getType() == Integer.class) {
-            field.set(instance, rs.getInt(fieldName));
-        } else if (field.getType() == Date.class) {
-            field.set(instance, rs.getDate(fieldName));
-        } else if (field.getType() == String.class) {
-            field.set(instance, rs.getString(fieldName));
-        }
     }
 
     private boolean checkIfTableExists(Class entity) throws SQLException {
@@ -274,7 +264,6 @@ public class EntityManager<E> implements DbContext<E> {
 
         ResultSet rs = connection.prepareStatement(query).executeQuery();
         while (rs.next()) {
-
             if (this.getColumnName(field).equals(rs.getString(1))) {
                 return true;
             }
