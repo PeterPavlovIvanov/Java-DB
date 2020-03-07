@@ -1,12 +1,13 @@
 package com.softuni.srpingintroexercise.services.impl;
 
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import com.softuni.srpingintroexercise.constants.GlobalConstants;
 import com.softuni.srpingintroexercise.entities.Category;
 import com.softuni.srpingintroexercise.repositories.CategoryRepository;
 import com.softuni.srpingintroexercise.services.CategoryService;
 import com.softuni.srpingintroexercise.utils.FileUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;

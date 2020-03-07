@@ -1,17 +1,16 @@
 package com.softuni.srpingintroexercise.services.impl;
 
+import org.springframework.stereotype.Service;
 import com.softuni.srpingintroexercise.constants.GlobalConstants;
 import com.softuni.srpingintroexercise.entities.Author;
 import com.softuni.srpingintroexercise.repositories.AuthorRepository;
 import com.softuni.srpingintroexercise.services.AuthorService;
 import com.softuni.srpingintroexercise.utils.FileUtil;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 @Service
 public class AuthorServiceImpl implements AuthorService {
@@ -58,6 +57,22 @@ public class AuthorServiceImpl implements AuthorService {
     @Override
     public List<Author> getAllAuthors() {
         return this.authorRepository.findAllAuthors();
+    }
+
+    @Override
+    public List<Author> getAllAuthorsByEndingString() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter a string:");
+        String end = scanner.nextLine();
+        return this.authorRepository.findAllByFirstNameEndingWith(end);
+    }
+
+    @Override
+    public List<Author> getAllByLastNameStartingWith() {
+        System.out.println("Enter a string: ");
+        Scanner scanner = new Scanner(System.in);
+        String str = scanner.nextLine();
+        return this.authorRepository.findAllByLastNameStartingWith(str);
     }
 
 }

@@ -1,6 +1,5 @@
 package com.softuni.srpingintroexercise.utils;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public interface FileUtil {

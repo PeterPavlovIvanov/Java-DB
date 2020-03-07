@@ -1,5 +1,6 @@
 package com.softuni.srpingintroexercise.services;
 
+
 import com.softuni.srpingintroexercise.entities.Author;
 
 import java.io.IOException;
@@ -11,4 +12,6 @@ public interface AuthorService {
     Author findAuthorById(long id);
     List<Author> getAllAuthorsByBooksCount();
     List<Author> getAllAuthors();
+    List<Author> getAllAuthorsByEndingString();
+    List<Author> getAllByLastNameStartingWith();
 }
