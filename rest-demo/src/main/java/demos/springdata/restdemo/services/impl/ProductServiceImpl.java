@@ -44,49 +44,55 @@ public class ProductServiceImpl implements ProductService {
         User seller;
         User buyer;
         for (ProductSeedDto productSeedDto : productsSeedDtos) {
-            if (new Random().nextInt(5) != 2) {
-                if (!this.validationUtil.isValid(productSeedDto)) {
-                    this.validationUtil.violations(productSeedDto)
-                            .stream()
-                            .map(ConstraintViolation::getMessage)
-                            .forEach(System.out::println);
-                    break;
-                }
+            int isBought = 1;
+            if (new Random().nextInt(5) != 2 && new Random().nextInt(5) != 3) {
+                isBought = 0;
+            }
+            if (!this.validationUtil.isValid(productSeedDto)) {
+                this.validationUtil.violations(productSeedDto)
+                        .stream()
+                        .map(ConstraintViolation::getMessage)
+                        .forEach(System.out::println);
+                break;
+            }
 
-                Random randomSeller = new Random();
-                Random randomBuyer = new Random();
+            Random randomSeller = new Random();
+            Random randomBuyer = new Random();
 
-                int rnSellerId = randomSeller.nextInt(this.userService.getAllCount()) + 1;
-                seller = this.userService.getById(rnSellerId);
+            int rnSellerId = randomSeller.nextInt(this.userService.getAllCount()) + 1;
+            seller = this.userService.getById(rnSellerId);
 
+            if(isBought == 1){
                 int rnBuyerId = randomBuyer.nextInt(this.userService.getAllCount()) + 1;
                 buyer = this.userService.getById(rnBuyerId);
-
-                productSeedDto.setBuyer(seller);
-                productSeedDto.setSeller(buyer);
-
-                int randomCategoriesCount = new Random().nextInt(11) + 1;
-                while (randomCategoriesCount-- >= 1) {
-                    Category category = this.categoryService
-                            .getById(new Random().nextInt(11) + 1);
-                    if (productSeedDto.getCategories() == null) {
-                        Set<Category> temp = new HashSet<>();
-                        temp.add(category);
-                        productSeedDto.setCategories(temp);
-                    } else {
-                        productSeedDto.getCategories().add(category);
-                    }
-                }
-
-                Product productToAdd = this.modelMapper.map(productSeedDto, Product.class);
-
-                this.productRepository.save(productToAdd);
+            }else{
+                buyer = null;
             }
+
+            productSeedDto.setBuyer(buyer);
+            productSeedDto.setSeller(seller);
+
+            int randomCategoriesCount = new Random().nextInt(11) + 1;
+            while (randomCategoriesCount-- >= 1) {
+                Category category = this.categoryService
+                        .getById(new Random().nextInt(11) + 1);
+                if (productSeedDto.getCategories() == null) {
+                    Set<Category> temp = new HashSet<>();
+                    temp.add(category);
+                    productSeedDto.setCategories(temp);
+                } else {
+                    productSeedDto.getCategories().add(category);
+                }
+            }
+
+            Product productToAdd = this.modelMapper.map(productSeedDto, Product.class);
+
+            this.productRepository.save(productToAdd);
         }
     }
 
     @Override
     public List<Product> getAllBetween(BigDecimal lower, BigDecimal higher) {
-        return this.productRepository.findAllByPriceBetweenOrderByPrice(lower,higher);
+        return this.productRepository.findAllByPriceBetweenOrderByPrice(lower, higher);
     }
 }

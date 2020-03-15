@@ -11,12 +11,12 @@ public class ProductFirstExDto {
     @Expose
     private BigDecimal price;
     @Expose
-    private User seller;
+    private SellerDto seller;
 
     public ProductFirstExDto() {
     }
 
-    public ProductFirstExDto(String name, BigDecimal price, User seller) {
+    public ProductFirstExDto(String name, BigDecimal price, SellerDto seller) {
         this.name = name;
         this.price = price;
         this.seller = seller;
@@ -38,11 +38,11 @@ public class ProductFirstExDto {
         this.price = price;
     }
 
-    public User getSeller() {
+    public SellerDto getSeller() {
         return seller;
     }
 
-    public void setSeller(User seller) {
+    public void setSeller(SellerDto seller) {
         this.seller = seller;
     }
 }

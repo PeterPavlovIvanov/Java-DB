@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 public class FileIOUtilImpl implements FileIOUtil{
+
     @Override
     public String readFileContent(String filePath) throws IOException {
         return Files.readAllLines(Paths.get(filePath))

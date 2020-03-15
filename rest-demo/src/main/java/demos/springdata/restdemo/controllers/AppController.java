@@ -3,23 +3,22 @@ package demos.springdata.restdemo.controllers;
 import com.google.gson.Gson;
 import demos.springdata.restdemo.dtos.*;
 import demos.springdata.restdemo.dtos.firstEx.ProductFirstExDto;
+import demos.springdata.restdemo.dtos.firstEx.SellerDto;
 import demos.springdata.restdemo.dtos.fourthEx.UPDto;
 import demos.springdata.restdemo.dtos.fourthEx.UserFourthExDto;
 import demos.springdata.restdemo.entities.Product;
 import demos.springdata.restdemo.services.CategoryService;
 import demos.springdata.restdemo.services.ProductService;
 import demos.springdata.restdemo.services.UserService;
+import demos.springdata.restdemo.utils.FileIOUtil;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 
 @Component
 public class AppController implements CommandLineRunner {
@@ -28,12 +27,14 @@ public class AppController implements CommandLineRunner {
     private final CategoryService categoryService;
     private final UserService userService;
     private final ProductService productService;
+    private final FileIOUtil fileIOUtil;
 
-    public AppController(Gson gson, CategoryService categoryService, UserService userService, ProductService productService) {
+    public AppController(Gson gson, CategoryService categoryService, UserService userService, ProductService productService, FileIOUtil fileIOUtil) {
         this.gson = gson;
         this.categoryService = categoryService;
         this.userService = userService;
         this.productService = productService;
+        this.fileIOUtil = fileIOUtil;
     }
 
     @Override
@@ -45,7 +46,7 @@ public class AppController implements CommandLineRunner {
 
         //3. Query and Export Data
 
-//        this.exercise1();//Query 1 – Products in Range
+//       this.exercise1();//Query 1 – Products in Range
 //
 //
 //        this.exercise2();//Query 2 – Successfully Sold Products
@@ -58,40 +59,45 @@ public class AppController implements CommandLineRunner {
 
     }
 
-    private void exercise1() {
-        Scanner scanner = new Scanner(System.in);
+    private void exercise1() throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.println("Enter lower range: ");
-        BigDecimal lower = BigDecimal.valueOf(Double.parseDouble(scanner.nextLine()));
+        BigDecimal lower = BigDecimal.valueOf(Double.parseDouble(bufferedReader.readLine()));
         System.out.println("Enter higher range: ");
-        BigDecimal higher = BigDecimal.valueOf(Double.parseDouble(scanner.nextLine()));
+        BigDecimal higher = BigDecimal.valueOf(Double.parseDouble(bufferedReader.readLine()));
 
         List<Product> allBetween = this.productService.getAllBetween(lower, higher);
 
-        List<String> result = new ArrayList<>();
+        List<ProductFirstExDto> result = new ArrayList<>();
 
         for (Product product : allBetween) {
+            SellerDto sellerDto = new SellerDto(product.getSeller().getFirstName() + product.getSeller().getLastName());
             ProductFirstExDto productFirstExDto =
-                    new ProductFirstExDto(product.getName(), product.getPrice(), product.getSeller());
-
-            result.add(this.gson.toJson(productFirstExDto));
+                    new ProductFirstExDto(product.getName(), product.getPrice(), sellerDto);
+            result.add(productFirstExDto);
         }
-        System.out.println(result);
+
+        this.fileIOUtil.write(this.gson.toJson(result), "src/main/resources/outputs/output1.json");
+        System.out.println(this.gson.toJson(result));
     }
 
-    private void exercise2() {
+    private void exercise2() throws IOException {
+        this.fileIOUtil.write(this.gson.toJson(this.userService.findAllSecondExercise()), "src/main/resources/outputs/output2.json");
         System.out.println(this.gson.toJson(this.userService.findAllSecondExercise()));
     }
 
-    private void exercise3() {
+    private void exercise3() throws IOException {
+        this.fileIOUtil.write(this.gson.toJson(this.categoryService.getAllCategoriesThirdEx()), "src/main/resources/outputs/output3.json");
         System.out.println(this.gson.toJson(this.categoryService.getAllCategoriesThirdEx()));
     }
 
-    private void exercise4() {
+    private void exercise4() throws IOException {
         List<UserFourthExDto> users = this.userService.findAllWithSoldProductsFourthExercise();
 
         UPDto upDto = new UPDto(users.size(), users);
 
+        this.fileIOUtil.write(this.gson.toJson(upDto), "src/main/resources/outputs/output4.json");
         System.out.println(this.gson.toJson(upDto));
     }
 
